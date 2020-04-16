@@ -116,4 +116,11 @@ var FirestoreRequest_ = function (url, authToken, options) {
   this.clone = function () {
     return new FirestoreRequest_(url, authToken, options)
   }
+
+  this.batch = function (obj) {
+    if (obj) {
+      payload(obj)
+    }
+    return method('post')
+  }
 }

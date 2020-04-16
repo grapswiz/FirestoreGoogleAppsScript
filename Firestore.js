@@ -28,6 +28,7 @@ var Firestore = function (email, key, projectId) {
    */
   const authToken = getAuthToken_(email, key, 'https://oauth2.googleapis.com/token')
   const baseUrl = 'https://firestore.googleapis.com/v1beta1/projects/' + projectId + '/databases/(default)/documents/'
+  const commitUrl = 'https://firestore.googleapis.com/v1/projects/' + projectId + '/databases/(default)/documents:commit'
 
   /**
    * Get a document.
@@ -110,5 +111,74 @@ var Firestore = function (email, key, projectId) {
   this.deleteDocument = function (path) {
     const request = new FirestoreRequest_(baseUrl, authToken)
     return deleteDocument_(path, request)
+  }
+
+  this.Batch = function() {
+    const requests = [];
+    this.set = function (path, fields) {
+      // TODO Write 形式にして requests に詰める
+    }
+
+    this.update = function (path, fields, mask) {
+      // TODO Write 形式にして requests に詰める
+    }
+
+    this.delete = function (path) {
+      // TODO Write 形式にして requests に詰める
+
+    }
+    this.commit = function () {
+      // TODO requests をつけて投げる
+    }
+  }
+
+  /**
+   *
+   * @param {} request
+   */
+  this.batchRequest = function (type, path, fields, mask) {
+    let pathDoc
+    let firestoreObject
+    switch (type) {
+      case 'CREATE':
+        pathDoc = getDocumentFromPath_(path)
+        firestoreObject = createFirestoreDocument_(fields)
+        const documentId = pathDoc[1]
+
+        // if (documentId) {
+        //   request.addParam('documentId', documentId)
+        // }
+        // return request.post(pathDoc[0], firestoreObject)
+        return {documentId, pathDoc, firestoreObject};
+        break
+      case 'UPDATE':
+        if (mask) {
+          // abort request if fields object is empty
+          if (!Object.keys(fields).length) {
+            return;
+          }
+          for (field in fields) {
+            request.addParam('updateMask.fieldPaths', field)
+          }
+        }
+
+        firestoreObject = createFirestoreDocument_(fields)
+
+        return {path, firestoreObject, fields, mask};
+        // return request.patch(path, firestoreObject)
+      case 'DELETE':
+        return {method: 'delete', path}
+      default:
+    }
+  }
+
+  /**
+   *
+   * @param {object[]} requests
+   */
+  this.doBatchRequest = function (requests) {
+    // TODO requests を commit API に流す
+    const request = new FirestoreRequest_(baseUrl, authToken)
+    return batchRequest_(requests, request)
   }
 }

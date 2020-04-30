@@ -117,10 +117,8 @@ var FirestoreRequest_ = function (url, authToken, options) {
     return new FirestoreRequest_(url, authToken, options)
   }
 
-  this.batch = function (obj) {
-    if (obj) {
-      payload(obj)
-    }
+  this.batch = function (requests) {
+    payload({ writes: requests })
     return method('post')
   }
 }

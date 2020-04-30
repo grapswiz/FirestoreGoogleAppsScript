@@ -32,7 +32,7 @@ function createDocument_ (path, fields, request) {
  * @param {boolean} if true, the update will use a mask
  * @return {object} the Document object written to Firestore
  */
-function updateDocument_ (path, fields, request, mask) {  
+function updateDocument_ (path, fields, request, mask) {
   if (mask) {
     // abort request if fields object is empty
     if (!Object.keys(fields).length) {
@@ -46,4 +46,8 @@ function updateDocument_ (path, fields, request, mask) {
   const firestoreObject = createFirestoreDocument_(fields)
   
   return request.patch(path, firestoreObject)
+}
+
+function batchDocument_(request, requests) {
+    return request.batch(requests);
 }

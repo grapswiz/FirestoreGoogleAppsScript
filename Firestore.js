@@ -117,34 +117,33 @@ var Firestore = function (email, key, projectId) {
     const commitUrl = 'https://firestore.googleapis.com/v1/projects/' + projectId + '/databases/(default)/documents:commit'
     const request = new FirestoreRequest_(commitUrl, authToken)
     this.requests = {};
-    this.set = function (path, fields) {
-      // TODO Write 形式にして requests に詰める
+    this.create = function (path, fields) {
+      if (!this.requests[path]) {
+        this.requests[path] = {};
+      }
+      const firestoreObject = createFirestoreDocument_(fields)
+      this.requests[path]['update'] = Object.assign({}, { name: `projects/${projectId}/databases/(default)/documents${path}` }, firestoreObject)
     }
 
-    this.update = function (path, fields, mask) {
-      // this.requests[path] = {};
-      // if (mask) {
-      //   if (!Object.keys(fields).length) {
-      //     return;
-      //   }
-      //   this.requests[path]['updateMask'] = Object.keys(fields)
-      // }
-      const pathDoc = getDocumentFromPath_(path)
+    this.update = function (path, fields) {
+      if (!this.requests[path]) {
+        this.requests[path] = {};
+      }
+      this.requests[path]['updateMask'] = {'fieldPaths': Object.keys(fields) }
       const firestoreObject = createFirestoreDocument_(fields)
-      const documentId = pathDoc[1]
       this.requests[path]['update'] = Object.assign({}, { name: `projects/${projectId}/databases/(default)/documents${path}` }, firestoreObject)
     }
 
     this.delete = function (path) {
-      // TODO Write 形式にして requests に詰める
+      if (!this.requests[path]) {
+        this.requests[path] = {};
+      }
+      this.requests[path]['delete'] = `projects/${projectId}/databases/(default)/documents${path}`
     }
     this.commit = function () {
-      const request = new FirestoreRequest_(commitUrl, authToken)
-      //TODO 形を整える
-      const updateRequests = Object.keys(this.requests).reduce((acc, cur) => {
-        return acc.concat(this.requests[cur]);
+      const requestArray = Object.keys(this.requests).reduce((acc, cur) => {
+        return acc.concat(this.requests[cur])
       }, [])
-      const requestArray = [...updateRequests]
       return batchDocument_(request, requestArray)
     }
   }
